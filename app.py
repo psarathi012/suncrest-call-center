@@ -35,17 +35,20 @@ def get_db_connection():
 
 def init_db():
     """Initialize database tables"""
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS deleted_calls (
-            call_id VARCHAR(255) PRIMARY KEY,
-            deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS deleted_calls (
+                call_id VARCHAR(255) PRIMARY KEY,
+                deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"Warning: Could not initialize DB: {e}")
 
 
 def get_deleted_call_ids():
