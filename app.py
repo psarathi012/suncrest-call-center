@@ -223,7 +223,7 @@ def format_call(call):
         "license-check-failed", "pipeline-error", "silence-timed-out", "voicemail",
         "assistant-request-returned-error", "assistant-request-returned-invalid-assistant",
         "phone-call-provider-closed-websocket", "assistant-ended-call-with-error",
-        "customer-did-not-answer", "assistant-said-end-call-phrase", "exceeded-max-duration",
+        "customer-did-not-answer", "exceeded-max-duration",
         "manually-canceled", "phone-call-provider-bypass-enabled-but-no-call-received"
     ]
     
