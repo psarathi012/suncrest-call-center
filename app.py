@@ -167,7 +167,7 @@ def parse_plain_transcript(text):
     return messages_list
 
 
-def format_call(call):
+def format_call(call, include_transcript=True):
     """Format a call object for the frontend"""
     created_at = call.get("createdAt", "")
     time_str = ""
@@ -236,7 +236,7 @@ def format_call(call):
     elif "error" in ended_reason.lower() or "failed" in ended_reason.lower():
         status = "failed"
     
-    return {
+    result = {
         "id": call.get("id", ""),
         "short_id": call.get("id", "")[:12] + "...",
         "customer": call.get("customer", {}).get("number", "—"),
@@ -247,9 +247,13 @@ def format_call(call):
         "date_time": time_str,
         "duration": duration_str,
         "cost": cost_str,
-        "transcript": extract_transcript(call),  # Now returns list of {role, content}
         "recording_url": call.get("stereoRecordingUrl") or call.get("recordingUrl") or "",
     }
+    
+    if include_transcript:
+        result["transcript"] = extract_transcript(call)
+    
+    return result
 
 
 @app.route("/")
@@ -288,7 +292,7 @@ def get_calls():
             
             formatted_calls = []
             for c in filtered_calls:
-                call_data = format_call(c)
+                call_data = format_call(c, include_transcript=False)
                 call_data["rating"] = feedback_map.get(c.get("id"))
                 formatted_calls.append(call_data)
             
