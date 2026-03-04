@@ -609,21 +609,24 @@
             return div.innerHTML;
         }
         
-        async function loadCalls() {
+        async function loadCalls(silent = false) {
             const refreshBtn = document.getElementById('refreshBtn');
             const refreshIcon = document.getElementById('refreshIcon');
             const refreshText = document.getElementById('refreshText');
             
-            refreshBtn.disabled = true;
-            refreshIcon.classList.add('animate-spin');
-            refreshText.textContent = 'Loading...';
+            if (!silent) {
+                refreshBtn.disabled = true;
+                refreshIcon.classList.add('animate-spin');
+                refreshText.textContent = 'Loading...';
+            }
             
             try {
                 const res = await fetch('/api/calls');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
                 
                 if (data.error) {
-                    showToast(data.error, 'error');
+                    if (!silent) showToast(data.error, 'error');
                     return;
                 }
                 
@@ -631,7 +634,7 @@
                 updateTabs();
                 applyFilters();
             } catch (err) {
-                showToast('Failed to load calls', 'error');
+                if (!silent) showToast('Failed to load calls', 'error');
             } finally {
                 refreshBtn.disabled = false;
                 refreshIcon.classList.remove('animate-spin');
@@ -1132,7 +1135,7 @@
         }
         
         loadCalls();
-        setInterval(loadCalls, 30000);
+        setInterval(() => loadCalls(true), 30000);
     </script>
 </body>
 </html>
