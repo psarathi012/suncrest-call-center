@@ -5,6 +5,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 
 load_dotenv()
 
@@ -264,7 +265,18 @@ def serve_static(filename):
 @app.route("/api/calls")
 def get_calls():
     try:
-        r = requests.get(f"{BASE_URL}?assistantId={ASSISTANT_ID}", headers=HEADERS, timeout=10)
+        def fetch_vapi():
+            return requests.get(f"{BASE_URL}?assistantId={ASSISTANT_ID}", headers=HEADERS, timeout=25)
+
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            vapi_future = executor.submit(fetch_vapi)
+            deleted_future = executor.submit(get_deleted_call_ids)
+            feedback_future = executor.submit(get_all_feedback)
+
+            r = vapi_future.result()
+            deleted_ids = deleted_future.result()
+            feedback_map = feedback_future.result()
+
         if r.status_code // 100 == 2:
             data = r.json()
             if isinstance(data, list):
@@ -272,10 +284,8 @@ def get_calls():
             else:
                 calls = data.get("calls", data.get("data", []))
             
-            deleted_ids = get_deleted_call_ids()
             filtered_calls = [c for c in calls if c.get("id") not in deleted_ids]
             
-            feedback_map = get_all_feedback()
             formatted_calls = []
             for c in filtered_calls:
                 call_data = format_call(c)
